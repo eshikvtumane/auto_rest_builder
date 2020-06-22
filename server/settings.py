@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'server.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('AUTO_REST_BUILDER_DATABASE_NAME', 'auto_rest_builder_db'),
+        'USER': os.getenv('AUTO_REST_BUILDER_DATABASE_USER', 'postgres'),
+        'PASSWORD': os.getenv('AUTO_REST_BUILDER_DATABASE_PASSWORD', 'postgres'),
+        'HOST': os.getenv('AUTO_REST_BUILDER_DATABASE_ADDRESS', '127.0.0.1'),
+        'PORT': os.getenv('AUTO_REST_BUILDER_DATABASE_PORT', '5432'),
     }
 }
 
