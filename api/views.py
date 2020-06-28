@@ -11,6 +11,18 @@ def models_list(request) -> JsonResponse:
     return JsonResponse(result, safe=False)
 
 
+def get_records(request, app_label_name: str, model_name: str) -> JsonResponse:
+    if request.method == "GET":
+        model = apps.get_model(app_label_name, model_name)
+
+        limit = request.GET.pop('limit', 100)
+        order_by = request.GET.pop('order_by', 'pk')
+        columns_filter = request.GET
+
+        result = model.objects.filter(**columns_filter).order_by(order_by)[:limit]
+        return JsonResponse(result, safe=False)
+
+
 def add_record(request, app_label_name: str, model_name: str) -> JsonResponse:
     if request.method == "POST":
         model = apps.get_model(app_label_name, model_name)
