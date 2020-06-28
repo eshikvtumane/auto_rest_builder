@@ -25,6 +25,8 @@ class AutoRest:
             result = method_obj(model)
             response = self.__create_success_response(result)
             return response
+        except TypeError as e:
+            return self.__create_error_response("Error! Field does not exist: {}".format(str(e)))
         except model.DoesNotExist:
             return self.__create_error_response("Error! Record does not exist.")
         except Exception as e:
@@ -71,7 +73,7 @@ class AutoRest:
         return result
 
     def post(self, model) -> str:
-        body = self.__get_request_body()
+        body = self._request.POST.dict()
         created_obj = model.objects.create(**body)
         created_obj_json = model_to_dict(created_obj)
         return created_obj_json

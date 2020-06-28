@@ -12,9 +12,10 @@ class AddRecordTestCase(TestCase):
         super(AddRecordTestCase, cls).setUpClass()
         app_label = 'api'
         model = 'testmodel'
-        cls.url = '/api/{}/{}/add'.format(app_label, model)
+        cls.url = '/api/{}/{}/add/'.format(app_label, model)
 
     def test_add_success(self):
+        old_count = TestModel.objects.count()
         client = Client()
         response = client.post(
             self.url,
@@ -23,8 +24,26 @@ class AddRecordTestCase(TestCase):
                 "second_column": 1,
             },
         )
+        new_count = TestModel.objects.count()
 
-        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(old_count + 1, new_count)
+
+    def test_add_failed(self):
+        client = Client()
+        response = client.post(
+            self.url,
+            {
+                "first_column": 'first_column',
+                "failed_second_column": 1,
+                "failed": 1,
+            },
+        )
+
+        data = ast.literal_eval(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 500)
+        self.assertTrue("Error! Field does not exist:" in data["error"])
 
 
 class DeleteRecordTestCase(TestCase):
@@ -65,7 +84,7 @@ class DeleteRecordTestCase(TestCase):
     @staticmethod
     def random_string(self):
         return uuid.uuid4().hex[:6].upper()
-    
+
 
 class UpdateRecordTestCase(TestCase):
     @classmethod
