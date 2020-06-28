@@ -1,4 +1,4 @@
-import json
+import ast
 from django.apps import apps
 from django.forms import model_to_dict
 from django.http import JsonResponse, HttpRequest
@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 
 class AutoRest:
-    def __init__(self, wait_method:str, app_label_name:str, model_name:str, request: HttpRequest, pk: int = None):
+    def __init__(self, wait_method: str, app_label_name: str, model_name: str, request: HttpRequest, pk: int = None):
         self._wait_method = wait_method
         self._app_label_name = app_label_name
         self._model_name = model_name
@@ -81,12 +81,13 @@ class AutoRest:
     def put(self, model) -> Dict[Any, Any]:
         body = self.__get_request_body()
 
+        updated_objs = model.objects.filter(pk=self._pk)
+        updated_objs.update(**body)
         updated_obj = model.objects.get(pk=self._pk)
-        updated_obj.update(**body)
-        updated_obj_json = model_to_dict(updated_obj.refresh_from_db())
+        updated_obj_json = model_to_dict(updated_obj)
         return updated_obj_json
 
     def __get_request_body(self) -> Dict[Any, Any]:
         body_unicode = self._request.body.decode('utf-8')
-        body = json.loads(body_unicode)
+        body = ast.literal_eval(body_unicode)
         return body
