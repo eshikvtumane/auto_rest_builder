@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from django.contrib.contenttypes.models import ContentType
+from django.http import JsonResponse
 
-# Create your views here.
+
+def models_list(request):
+    result = list(ContentType.objects.all().values("app_label", "model"))
+    return JsonResponse(result, safe=False)
