@@ -1,3 +1,9 @@
-from django.db import models
+from django.db.models import CharField, IntegerField, Model
 
-# Create your models here.
+
+class TestModel(Model):
+    first_column = CharField(
+        max_length=255,
+    )
+
+    second_column = IntegerField()
