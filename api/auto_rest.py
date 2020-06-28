@@ -25,6 +25,8 @@ class AutoRest:
             result = method_obj(model)
             response = self.__create_success_response(result)
             return response
+        except model.DoesNotExist:
+            return self.__create_error_response("Error! Record does not exist.")
         except Exception as e:
             # return self.__create_error_response("Error! Wrong app label or model name.")
             return self.__create_error_response("Error! {}.".format(str(e)))

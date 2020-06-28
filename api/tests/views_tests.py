@@ -79,3 +79,16 @@ class UpdateRecordTestCase(TestCase):
         self.assertTrue("first_column" in data["result"])
         self.assertTrue("second_column" in data["result"])
         self.assertNotEqual(second_column_init_value, updated_obj.second_column)
+
+    def test_update_failed(self):
+        url = self.url + '0'
+        client = Client()
+        response = client.put(
+            url,
+            {},
+        )
+
+        data = ast.literal_eval(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(data["error"], "Error! Record does not exist.")
