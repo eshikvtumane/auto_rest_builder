@@ -28,3 +28,16 @@ def delete_record(request, app_label_name: str, model_name: str, pk: int) -> Jso
 
         model.objects.filter(pk=pk).delete()
         return JsonResponse({"result": "Object has been delete success."})
+
+
+def update_record(request, app_label_name: str, model_name: str, pk: int) -> JsonResponse:
+    if request.method == "PUT":
+        model = apps.get_model(app_label_name, model_name)
+
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+
+        updated_obj = model.objects.get(pk=pk)
+        updated_obj.update(**body)
+        updated_obj_json = model_to_dict(updated_obj.refresh_from_db())
+        return JsonResponse(updated_obj_json)

@@ -41,3 +41,30 @@ class DeleteRecordTestCase(TestCase):
         response = client.delete(url)
 
         self.assertEqual(response.status_code, 301)
+
+
+class UpdateRecordTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        app_label = 'api'
+        model = 'testmodel'
+        cls.url = '/api/{}/{}/update/'.format(app_label, model)
+
+    def test_update_success(self):
+        created_obj = TestModel.objects.create(
+            first_column='test',
+            second_column=1,
+        )
+
+        url = self.url + created_obj.pk
+        client = Client()
+        response = client.put(
+            url,
+            {
+                "second_column": created_obj + 1,
+            },
+        )
+
+        updated_obj = TestModel.objects.get(pk=created_obj.pk)
+
+        self.assertNotEqual(created_obj.pk, updated_obj.pk)
