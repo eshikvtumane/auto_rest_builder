@@ -70,15 +70,15 @@ class AutoRest:
         result = list(model.objects.filter(**columns_filter).order_by(order_by)[:limit].values())
         return result
 
-    def post(self, model) -> Dict[Any, Any]:
+    def post(self, model) -> str:
         body = self.__get_request_body()
         created_obj = model.objects.create(**body)
         created_obj_json = model_to_dict(created_obj)
         return created_obj_json
 
     def delete(self, model) -> Dict[str, str]:
-        model.objects.filter(pk=self.__pk).delete()
-        return {"result": "Object has been delete success."}
+        model.objects.get(pk=self._pk).delete()
+        return "Object has been delete success."
 
     def put(self, model) -> Dict[Any, Any]:
         body = self.__get_request_body()

@@ -1,4 +1,5 @@
 import ast
+import uuid
 
 from django.test import Client, TestCase
 
@@ -36,16 +37,35 @@ class DeleteRecordTestCase(TestCase):
 
     def test_delete_success(self):
         created_obj = TestModel.objects.create(
-            first_column='test',
+            first_column=self.random_string(),
             second_column=1,
         )
 
-        url = self.url + created_obj.pk
+        url = self.url + str(created_obj.pk)
+        client = Client()
+        response = client.delete(url)
+        data = ast.literal_eval(response.content.decode('utf-8'))
+
+        records_count = TestModel.objects.filter(pk=created_obj.pk).count()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["result"], "Object has been delete success.")
+        self.assertEqual(records_count, 0)
+
+    def test_update_failed(self):
+        url = self.url + '0'
         client = Client()
         response = client.delete(url)
 
-        self.assertEqual(response.status_code, 301)
+        data = ast.literal_eval(response.content.decode('utf-8'))
 
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(data["error"], "Error! Record does not exist.")
+
+    @staticmethod
+    def random_string(self):
+        return uuid.uuid4().hex[:6].upper()
+    
 
 class UpdateRecordTestCase(TestCase):
     @classmethod
