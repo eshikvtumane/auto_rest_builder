@@ -1,55 +1,31 @@
-import json
-
-from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.forms import model_to_dict
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
+
+from api.auto_rest import AutoRest
 
 
-def models_list(request) -> JsonResponse:
+def models_list(request: HttpRequest) -> JsonResponse:
     result = list(ContentType.objects.all().values("app_label", "model"))
     return JsonResponse(result, safe=False)
 
 
-def get_records(request, app_label_name: str, model_name: str) -> JsonResponse:
-    if request.method == "GET":
-        model = apps.get_model(app_label_name, model_name)
-
-        limit = request.GET.pop('limit', 100)
-        order_by = request.GET.pop('order_by', 'pk')
-        columns_filter = request.GET
-
-        result = model.objects.filter(**columns_filter).order_by(order_by)[:limit]
-        return JsonResponse(result, safe=False)
+def get_records(request: HttpRequest, app_label_name: str, model_name: str) -> JsonResponse:
+    auto_rest = AutoRest('GET', app_label_name, model_name, request)
+    return auto_rest.get_result()
 
 
-def add_record(request, app_label_name: str, model_name: str) -> JsonResponse:
-    if request.method == "POST":
-        model = apps.get_model(app_label_name, model_name)
-
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        created_obj = model.objects.create(**body)
-        created_obj_json = model_to_dict(created_obj)
-        return JsonResponse(created_obj_json)
+def add_record(request: HttpRequest, app_label_name: str, model_name: str) -> JsonResponse:
+    auto_rest = AutoRest('POST', app_label_name, model_name, request)
+    return auto_rest.get_result()
 
 
-def delete_record(request, app_label_name: str, model_name: str, pk: int) -> JsonResponse:
-    if request.method == "DELETE":
-        model = apps.get_model(app_label_name, model_name)
-
-        model.objects.filter(pk=pk).delete()
-        return JsonResponse({"result": "Object has been delete success."})
+def delete_record(request: HttpRequest, app_label_name: str, model_name: str, pk: int) -> JsonResponse:
+    auto_rest = AutoRest('DELETE', app_label_name, model_name, request, pk)
+    return auto_rest.get_result()
 
 
-def update_record(request, app_label_name: str, model_name: str, pk: int) -> JsonResponse:
-    if request.method == "PUT":
-        model = apps.get_model(app_label_name, model_name)
+def update_record(request: HttpRequest, app_label_name: str, model_name: str, pk: int) -> JsonResponse:
+    auto_rest = AutoRest('PUT', app_label_name, model_name, request, pk)
+    return auto_rest.get_result()
 
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
 
-        updated_obj = model.objects.get(pk=pk)
-        updated_obj.update(**body)
-        updated_obj_json = model_to_dict(updated_obj.refresh_from_db())
-        return JsonResponse(updated_obj_json)
