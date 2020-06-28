@@ -6,6 +6,86 @@ from django.test import Client, TestCase
 from api.models import TestModel
 
 
+class GetRecordTestCase(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(GetRecordTestCase, cls).setUpClass()
+        app_label = 'api'
+        model = 'testmodel'
+        cls.url = '/api/{}/{}/get/'.format(app_label, model)
+
+    def setUp(self):
+        self.test_models = [TestModel.objects.create(
+            first_column="test_{}".format(i),
+            second_column=i,
+        ) for i in range(5)]
+
+    def test_get_filter_success(self):
+        first_column_value = self.test_models[0].first_column
+        second_column_value = self.test_models[0].second_column
+
+        client = Client()
+        response = client.get(
+            self.url,
+            {
+                "first_column": first_column_value,
+                "second_column": second_column_value,
+            },
+        )
+
+        data = ast.literal_eval(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data["result"]), 1)
+
+    def test_get_order_by_asc_success(self):
+        client = Client()
+        response = client.get(
+            self.url,
+            {
+                "order_by": "pk",
+            },
+        )
+
+        data = ast.literal_eval(response.content.decode('utf-8'))
+        ids = [item["id"] for item in data["result"]]
+        sorted_ids = sorted(ids)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ids, sorted_ids)
+
+    def test_get_order_by_desc_success(self):
+        client = Client()
+        response = client.get(
+            self.url,
+            {
+                "order_by": "-pk",
+            },
+        )
+
+        data = ast.literal_eval(response.content.decode('utf-8'))
+        ids = [item["id"] for item in data["result"]]
+        sorted_ids = sorted(ids, reverse=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ids, sorted_ids)
+
+    def test_get_limit_success(self):
+        limit = 2
+        client = Client()
+        response = client.get(
+            self.url,
+            {
+                "limit": limit,
+            },
+        )
+
+        data = ast.literal_eval(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data["result"]), limit)
+
+
 class AddRecordTestCase(TestCase):
     @classmethod
     def setUpClass(cls):

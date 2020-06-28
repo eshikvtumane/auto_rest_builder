@@ -64,8 +64,8 @@ class AutoRest:
         return getattr(self, method_name)
 
     def get(self, model) -> [Dict[Any, Any]]:
-        params = self._request.GET.copy()
-        limit = params.pop('limit', 100)
+        params = self._request.GET.dict().copy()
+        limit = int(params.pop('limit', 100))
         order_by = params.pop('order_by', 'pk')
         columns_filter = params
 
